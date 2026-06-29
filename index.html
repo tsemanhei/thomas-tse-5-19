@@ -1,88 +1,373 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>幸運數字分析</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多維幸運數字六十四卦計算器</title>
     <style>
-        body { background-color: #f2f2f7; font-family: -apple-system, sans-serif; }
-        .ios-input { background: #fff; border-radius: 12px; border: 1px solid #d1d1d6; padding: 16px; width: 100%; font-size: 18px; }
-        .ios-btn { background: #007aff; color: white; border-radius: 12px; padding: 16px; font-weight: 600; width: 100%; transition: opacity 0.2s; }
-        .ios-btn:active { opacity: 0.7; }
+        :root {
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --border-color: #e2e8f0;
+            --primary-color: #3182ce;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #1a202c;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px;
+            font-size: 1.2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: #2d3748;
+            color: white;
+            border: none;
+            padding: 0 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #1a202c;
+        }
+
+        .example-hint {
+            font-size: 0.9rem;
+            color: #718096;
+            background: #edf2f7;
+            padding: 10px 15px;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+
+        /* 結果清單區域 */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .combination-row {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .sub-num {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-family: monospace;
+        }
+
+        .split-detail {
+            font-size: 0.95rem;
+            color: #4a5568;
+        }
+
+        .split-detail strong {
+            color: #2d3748;
+        }
+
+        .gua-display-box {
+            display: flex;
+            gap: 15px;
+            align-items: stretch;
+            margin-top: 10px;
+        }
+
+        /* 動態顏色邊框標籤 */
+        .color-indicator {
+            width: 8px;
+            border-radius: 4px;
+        }
+        .indicator-紅色 { background-color: #e53e3e; }
+        .indicator-黑色 { background-color: #1a202c; }
+        .indicator-藍色 { background-color: #3182ce; }
+
+        .gua-info-body {
+            flex: 1;
+        }
+
+        .gua-meta-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+            margin-left: 6px;
+            font-weight: normal;
+            vertical-align: middle;
+        }
+        .badge-紅色 { background-color: #e53e3e; }
+        .badge-黑色 { background-color: #1a202c; }
+        .badge-藍色 { background-color: #3182ce; }
+
+        .wuxing-tag {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-left: 10px;
+        }
+
+        .gua-commentary {
+            font-size: 1rem;
+            color: #4a5568;
+            line-height: 1.5;
+            background: #f7fafc;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
     </style>
 </head>
-<body class="p-6">
-    <div class="max-w-md mx-auto pt-10">
-        <h1 class="text-3xl font-bold mb-2">數字占卜</h1>
-        <p class="text-gray-500 mb-8">請輸入您的號碼進行解析</p>
+<body>
 
-        <div class="space-y-4">
-            <input type="number" id="numInput" class="ios-input" placeholder="請輸入數字 (例如: 61205702)" inputmode="numeric">
-            <button onclick="performLookup()" class="ios-btn">開始解析</button>
+<div class="container">
+    <h1>多維幸運數字六十四卦計算器</h1>
+    <div class="subtitle">依長度遞增自動切割：奇數長度上卦少1碼、下卦多1碼；偶數長度均分</div>
+    
+    <div class="input-section">
+        <div class="input-group">
+            <input type="text" id="multi-digit-input" placeholder="請輸入 2 至 20 位的純數字" value="1234567" autocomplete="off">
+            <button id="analyse-btn">分析所有組合</button>
         </div>
-
-        <div id="resultBox" class="mt-10 hidden animate-pulse">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <span class="text-blue-600 font-bold tracking-widest text-xs uppercase" id="resElement">卦象名稱</span>
-                <h2 class="text-4xl font-black mt-2 mb-4" id="resGua">--</h2>
-                <hr class="my-4">
-                <p class="text-gray-700 leading-relaxed text-lg" id="resDesc">請點擊按鈕進行查詢...</p>
-            </div>
+        <div class="example-hint">
+            💡 <strong>範例效果：</strong>輸入 <code>1234567</code>，系統將會由後往前自動解析長度為 2 至 7 的子組合（如：67、567、4567... 依此類推），並精準套用您的「工作表檔案 幸運數字」對應資料庫！
         </div>
     </div>
 
-    <script>
-        // 1. Data from Sheet "Calc" (Maps Number -> Hexagram Name)
-        const calcData = {
-            "61205702": "訟",
-            "5702": "歸妹",
-            "7": "損",
-            "205": "大畜",
-            "05": "小畜",
-            "120": "未濟"
-            // Add more mappings from your Excel sheet here
-        };
+    <!-- 所有卦象解析結果的輸出貨架 -->
+    <div class="results-list" id="output-list"></div>
+</div>
 
-        // 2. Data from Sheet "卦" (Maps Hexagram Name -> Description)
-        const guaDescriptions = {
-            "訟": "非常不好的卦，打官司，是非小人，要訂定仔細合同做事。",
-            "歸妹": "回歸，再次或重新做一些事情，在感情上代表有三角關係。",
-            "損": "先短期付出才會有成果。",
-            "大畜": "豐收，農業上是非常好卦。",
-            "小畜": "小收穫，做生意代表好卦。",
-            "未濟": "很多事情需要處理好才能成功。"
-            // Add more descriptions from your Excel sheet here
-        };
+<script>
+    // ===================================================
+    // 來源參考自檔案「幸運數字」：內嵌六十四卦靜態資料庫
+    // ===================================================
+    const luckyGuaDatabase = {
+        "11": { seq: 1,  name: "乾", wuxing: "金", color: "黑色", exp: "什麼都好，但小心得意忘形及疲累" },
+        "12": { seq: 10, name: "履", wuxing: "土", color: "紅色", exp: "認真順其自然去做" },
+        "13": { seq: 13, name: "同人", wuxing: "火", color: "紅色", exp: "代表很多人才走在一起，做生意代表人氣匯聚" },
+        "14": { seq: 25, name: "無妄", wuxing: "木", color: "藍色", exp: "沒方向，甚至有無妄之災" },
+        "15": { seq: 44, name: "姤", wuxing: "金", color: "藍色", exp: "很反復，男女糾纏事特別多，女生間婚姻感情是好卦，女生專用好卦" },
+        "16": { seq: 6,  name: "訟", wuxing: "火", color: "藍色", exp: "非常不好的卦，打官司，是非小人，要訂定仔細合同做事" },[cite: 1]
+        "17": { seq: 33, name: "遁", wuxing: "金", color: "藍色", exp: "低調藏起來，內向宅男/宅女，生意發展停滯不前" },
+        "18": { seq: 12, name: "否", wuxing: "金", color: "藍色", exp: "否定，非常不好的卦" },
+        "21": { seq: 43, name: "怪", wuxing: "土", color: "藍色", exp: "事業、感情反覆" },
+        "22": { seq: 58, name: "克", wuxing: "金", color: "黑色", exp: "很開心事情會好" },
+        "23": { seq: 49, name: "革", wuxing: "木", color: "黑色", exp: "代表會有好改變或正在有好的改變" },
+        "24": { seq: 17, name: "隨", wuxing: "木", color: "紅色", exp: "順其自然便會很好" },
+        "25": { seq: 28, name: "大過", wuxing: "木", color: "藍色", exp: "非常不好的卦，大過卦，代表是大過錯" },
+        "26": { seq: 47, name: "困", wuxing: "金", color: "藍色", exp: "非常不好的卦，困擾，不好" },
+        "27": { seq: 31, name: "咸", wuxing: "金", color: "紅色", exp: "很開心。財運好卦" },[cite: 1]
+        "28": { seq: 45, name: "萃", wuxing: "金", color: "紅色", exp: "有人才匯聚，做生意代表人氣匯聚" },
+        "31": { seq: 14, name: "大有", wuxing: "金", color: "紅色", exp: "非常好卦，心想事成很光明正大的好" },
+        "32": { seq: 38, name: "睽", wuxing: "火", color: "藍色", exp: "看錯了，看走眼了" },
+        "33": { seq: 30, name: "離", wuxing: "火", color: "黑色", exp: "積極向好，但留意脾氣用事" },
+        "34": { seq: 21, name: "噬嗑", wuxing: "木", color: "黑色", exp: "變化大，反覆，吵架，能言善辯" },
+        "35": { seq: 50, name: "鼎", wuxing: "火", color: "紅色", exp: "創新、創意，適合科技發展" },
+        "36": { seq: 64, name: "未濟", wuxing: "火", color: "黑色", exp: "很多事情需要處理好才能成功" },
+        "37": { seq: 56, name: "旅", wuxing: "火", color: "黑色", exp: "心情休閒假期心態" },[cite: 1]
+        "38": { seq: 35, name: "晉", wuxing: "火", color: "紅色", exp: "好卦，事情循序漸進地往好方向發展，特別是官場代表加官晉升" },
+        "41": { seq: 34, name: "大壯", wuxing: "土", color: "紅色", exp: "非常好卦，一鳴驚人，名譽好" },
+        "42": { seq: 54, name: "歸妹", wuxing: "金", color: "藍色", exp: "回歸，再次或重新做一些事情，在感情上代表有三角關係" },
+        "43": { seq: 55, name: "豐", wuxing: "水", color: "紅色", exp: "豐富豐收" },
+        "44": { seq: 51, name: "震", wuxing: "木", color: "黑色", exp: "一般而有驚喜的卦" },
+        "45": { seq: 32, name: "恆", wuxing: "木", color: "紅色", exp: "恆卦，代表恆久長遠" },
+        "46": { seq: 40, name: "解", wuxing: "木", color: "黑色", exp: "解除，解決事情，病人出此卦代表沒大事" },[cite: 1]
+        "47": { seq: 62, name: "小過", wuxing: "金", color: "黑色", exp: "小過錯，有一點遲疑，要專心" },
+        "48": { seq: 16, name: "豫", wuxing: "木", color: "紅色", exp: "和諧，做生意代表好卦" },
+        "51": { seq: 9,  name: "小畜", wuxing: "木", color: "紅色", exp: "小收穫，做生意代表好卦" },[cite: 1]
+        "52": { seq: 61, name: "中孚", wuxing: "木", color: "黑色", exp: "有誠意及專注就能成功" },
+        "53": { seq: 37, name: "家人", wuxing: "木", color: "紅色", exp: "非常好卦，代表一團和氣" },
+        "54": { seq: 42, name: "益", wuxing: "木", color: "紅色", exp: "做生意代表人氣匯聚" },
+        "55": { seq: 57, name: "巽", wuxing: "木", color: "黑色", exp: "不實在，最終無成果" },
+        "56": { seq: 59, name: "渙", wuxing: "木", color: "藍色", exp: "虛無不集中不專注" },
+        "57": { seq: 53, name: "漸", wuxing: "木", color: "紅色", exp: "漸漸一步步見證成功" },
+        "58": { seq: 20, name: "觀", wuxing: "金", color: "藍色", exp: "觀望，不實在，做傍觀者，有很多好事但實行不了" },
+        "61": { seq: 5,  name: "需", wuxing: "土", color: "紅色", exp: "好卦，但要等一下。養生好卦" },
+        "62": { seq: 60, name: "節", wuxing: "水", color: "紅色", exp: "節節上升，做生意的非常好卦" },[cite: 1]
+        "63": { seq: 63, name: "既濟", wuxing: "水", color: "紅色", exp: "完美成功，但要注意處理好，不要喜極忘形及放鬆" },
+        "64": { seq: 2,  name: "屯", wuxing: "水", color: "紅色", exp: "儲藏寶物，非常好卦" },
+        "65": { seq: 48, name: "井", wuxing: "木", color: "藍色", exp: "非常不好的卦，只有付出無收穫" },
+        "66": { seq: 29, name: "坎", wuxing: "水", color: "黑色", exp: "水變化多，做貿易買賣生意是非常好卦" },
+        "67": { seq: 39, name: "蹇", wuxing: "金", color: "藍色", exp: "非常不好的卦，是一拐一拐發展，阻礙多" },
+        "68": { seq: 8,  name: "比", wuxing: "土", color: "紅色", exp: "要比較，在夥伴來講是好卦兄弟一樣" },
+        "71": { seq: 26, name: "大畜", wuxing: "土", color: "紅色", exp: "豐收，農業上是非常好卦" },
+        "72": { seq: 41, name: "損", wuxing: "土", color: "藍色", exp: "先短期付出才會有成果" },[cite: 1]
+        "73": { seq: 22, name: "賁", wuxing: "土", color: "藍色", exp: "會有突然性，有好有壞。好時有貴人出現，但主要是吵架" },
+        "74": { seq: 27, name: "頤", wuxing: "木", color: "紅色", exp: "心態平和，問學業藝術類是好卦" },
+        "75": { seq: 18, name: "蠱", wuxing: "木", color: "藍色", exp: "非常不好的卦，有人騙你或事情是個騙局，出租車代表黑車" },
+        "76": { seq: 4,  name: "蒙", wuxing: "火", color: "紅色", exp: "萌芽時期，循序漸進便會好，學習發展的非常好卦" },
+        "77": { seq: 52, name: "艮", wuxing: "土", color: "藍色", exp: "困難重重。或已經用了很久的代表好卦" },
+        "78": { seq: 23, name: "剝", wuxing: "金", color: "黑色", exp: "過山車式，時好時壞卦" },
+        "81": { seq: 11, name: "泰", wuxing: "土", color: "紅色", exp: "非常好卦，穩穩當當的發展，財運及車牌好卦" },
+        "82": { seq: 19, name: "臨", wuxing: "土", color: "黑色", exp: "凡事需親力親為" },
+        "83": { seq: 36, name: "明夷", wuxing: "水", color: "藍色", exp: "先風光後持續走下坡路，容易生腹腸病" },
+        "84": { seq: 24, name: "復", wuxing: "土", color: "紅色", exp: "先經歷低谷，之後有好發展" },
+        "85": { seq: 46, name: "升", wuxing: "木", color: "紅色", exp: "一步步往上升" },
+        "86": { seq: 7,  name: "師", wuxing: "水", color: "藍色", exp: "爭門 - 生意、思想及駕馭" },
+        "87": { seq: 15, name: "謙", wuxing: "金", color: "紅色", exp: "非常好卦，財運最好" },
+        "88": { seq: 3,  name: "坤", wuxing: "土", color: "藍色", exp: "效率慢，什麼事都成不了" }
+    };
 
-        function performLookup() {
-            const input = document.getElementById('numInput').value.trim();
-            const resultBox = document.getElementById('resultBox');
-            const resGua = document.getElementById('resGua');
-            const resDesc = document.getElementById('resDesc');
+    document.getElementById('analyse-btn').addEventListener('click', parseAllCombinations);
 
-            // Logic: A1 Lookup in Calc -> Result Lookup in 卦
-            const guaName = calcData[input];
+    // 初始化時自動跑一次預設值
+    parseAllCombinations();
 
-            if (guaName) {
-                const description = guaDescriptions[guaName] || "找到卦象，但無相關描述。";
-                resGua.innerText = guaName;
-                resDesc.innerText = description;
-                resultBox.classList.remove('hidden');
-            } else {
-                // Fuzzy Match: Check if input contains any known keys (optional)
-                const matchedKey = Object.keys(calcData).find(key => input.includes(key));
-                if (matchedKey) {
-                    const foundGua = calcData[matchedKey];
-                    resGua.innerText = foundGua;
-                    resDesc.innerText = guaDescriptions[foundGua];
-                    resultBox.classList.remove('hidden');
-                } else {
-                    alert("查無此數字之卦象，請確認輸入是否正確。");
-                }
-            }
+    function parseAllCombinations() {
+        const inputStr = document.getElementById('multi-digit-input').value.trim().replace(/\D/g, '');
+        const outputList = document.getElementById('output-list');
+        outputList.innerHTML = ''; // 清空舊畫面
+
+        if (inputStr.length < 2) {
+            alert('請輸入長度大於或等於 2 位的數字串！');
+            return;
         }
-    </script>
+
+        const maxLen = Math.min(inputStr.length, 20);
+
+        // 由長度 2 逐漸推進到完整長度 (或上限 20 碼)
+        for (let len = 2; len <= maxLen; len++) {
+            // 從原始字串的尾端往前擷取對應長度的子字串
+            const subStr = inputStr.substring(inputStr.length - len);
+
+            // 精準對切邏輯：比照範例 7 碼時，上卦 3 碼 (123)、下卦 4 碼 (4567)
+            // 即奇數長度時：上半部無條件捨去 Math.floor() 得到較短長度，下半部拿剩餘較長長度
+            const splitPos = Math.floor(subStr.length / 2);
+            const upperDigits = subStr.substring(0, splitPos);
+            const lowerDigits = subStr.substring(splitPos);
+
+            // 將上卦與下卦的整數值除以 8 求餘數 (若整除餘 0 則視為 8)
+            const upperMod = (parseInt(upperDigits) % 8) || 8;
+            const lowerMod = (parseInt(lowerDigits) % 8) || 8;
+
+            // 結合成主鍵代碼
+            const lookupKey = `${upperMod}${lowerMod}`;
+            const matchedGua = luckyGuaDatabase[lookupKey];
+
+            // 建立前端 DOM 結構
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'combination-row';
+
+            // 標題與切分說明
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'row-header';
+            headerDiv.innerHTML = `
+                <div class="sub-num">${subStr}</div>
+                <div class="split-detail">
+                    上卦數字: <strong>${upperDigits}</strong> ➔ (餘數: ${upperMod}) | 
+                    下卦數字: <strong>${lowerDigits}</strong> ➔ (餘數: ${lowerMod})
+                </div>
+            `;
+            rowDiv.appendChild(headerDiv);
+
+            // 卦象結果卡片
+            const guaBox = document.createElement('div');
+            guaBox.className = 'gua-display-box';
+
+            if (matchedGua) {
+                guaBox.innerHTML = `
+                    <div class="color-indicator indicator-${matchedGua.color}"></div>
+                    <div class="gua-info-body">
+                        <div class="gua-meta-title">
+                            ${matchedGua.name}卦 
+                            <span class="badge badge-${matchedGua.color}">${matchedGua.color}</span>
+                            <span class="wuxing-tag">五行：${matchedGua.wuxing} (代碼: ${lookupKey})</span>
+                        </div>
+                        <div class="gua-commentary">${matchedGua.exp}</div>
+                    </div>
+                `;
+            } else {
+                guaBox.innerHTML = `
+                    <div class="color-indicator" style="background:#cbd5e0;"></div>
+                    <div class="gua-info-body">
+                        <div class="gua-meta-title" style="color:#718096;">未定義代碼 (${lookupKey})</div>
+                        <div class="gua-commentary">資料庫中無此對應數據。</div>
+                    </div>
+                `;
+            }
+
+            rowDiv.appendChild(guaBox);
+            outputList.appendChild(rowDiv);
+        }
+    }
+</script>
+
 </body>
 </html>
