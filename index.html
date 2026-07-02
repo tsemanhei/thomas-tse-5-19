@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多維幸運數字六十四卦計算器 (含完整卦象圖)</title>
+    <title>多維幸運數字六十四卦計算器 (精準修正版)</title>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -89,15 +89,6 @@
             background-color: #1a202c;
         }
 
-        .example-hint {
-            font-size: 0.9rem;
-            color: #718096;
-            background: #edf2f7;
-            padding: 10px 15px;
-            border-radius: 6px;
-            line-height: 1.5;
-        }
-
         /* 結果清單區域 */
         .results-list {
             display: flex;
@@ -112,12 +103,6 @@
             padding: 20px;
             background: #fff;
             box-shadow: 0 2px 5px rgba(0,0,0,0.01);
-            transition: transform 0.2s;
-        }
-
-        .combination-row:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
         }
 
         .row-header {
@@ -156,7 +141,6 @@
             align-items: center;
         }
 
-        /* 左側動態顏色邊條 */
         .color-indicator {
             width: 8px;
             align-self: stroke;
@@ -167,7 +151,6 @@
         .indicator-黑色 { background-color: #1a202c; }
         .indicator-藍色 { background-color: #3182ce; }
 
-        /* 中間易經六爻畫圖區 */
         .iching-diagram {
             display: flex;
             flex-direction: column-reverse; /* 由下往上畫 */
@@ -183,11 +166,9 @@
             height: 8px;
             width: 100%;
         }
-        /* 陽爻：一條長橫 */
         .yang-bar {
             background-color: #2d3748;
         }
-        /* 陰爻：兩條短橫中間斷開 */
         .yin-bar {
             display: flex;
             justify-content: space-between;
@@ -199,7 +180,6 @@
             background-color: #2d3748;
         }
 
-        /* 右側文字內容 */
         .gua-info-body {
             flex: 1;
         }
@@ -252,165 +232,134 @@
             <input type="text" id="multi-digit-input" placeholder="請輸入 2 至 20 位的純數字" value="1234567" autocomplete="off">
             <button id="analyse-btn">分析所有組合</button>
         </div>
-        <div class="example-hint">
-            💡 <strong>以 1234567 為例的切割規則：</strong><br>
-            • <strong>長度 2 (67)</strong> ➔ 上卦: 6 (對應餘數), 下卦: 7 (對應餘數)<br>
-            • <strong>長度 3 (567)</strong> ➔ 奇數長度上少下多 ➔ 上卦: 5, 下卦: 67<br>
-            • <strong>長度 7 (1234567)</strong> ➔ 奇數長度 ➔ 上卦: 123, 下卦: 4567
-        </div>
     </div>
 
     <div class="results-list" id="output-list"></div>
 </div>
 
 <script>
-    // ===================================================
-    // 正確修復後的 JavaScript 標準 Object 字典資料庫
-    // ===================================================
+    // 六十四卦完整對照靜態資料庫
     const luckyGuaDatabase = {
-        "11": { seq: 1,  name: "乾", wuxing: "金", color: "黑色", binary: "111111", exp: "什麼都好，但小心得意忘形及疲累" },
-        "12": { seq: 10, name: "履", wuxing: "土", color: "紅色", binary: "111011", exp: "認真順其自然去做" },
-        "13": { seq: 13, name: "同人", wuxing: "火", color: "紅色", binary: "111101", exp: "代表很多人才走在一起，做生意代表人氣匯聚" },
-        "14": { seq: 25, name: "無妄", wuxing: "木", color: "藍色", binary: "111001", exp: "沒方向，甚至有無妄之災" },
-        "15": { seq: 44, name: "姤", wuxing: "金", color: "藍色", binary: "011111", exp: "很反復，男女糾纏事特別多，女生間婚姻感情是好卦，女生專用好卦" },
-        "16": { seq: 6,  name: "訟", wuxing: "火", color: "藍色", binary: "011101", exp: "非常不好的卦，打官司，是非小人，要訂定仔仔細合同做事" },
-        "17": { seq: 33, name: "遁", wuxing: "金", color: "藍色", binary: "001111", exp: "低調藏起來，內向宅男/宅女，生意發展停滯不前" },
-        "18": { seq: 12, name: "否", wuxing: "金", color: "藍色", binary: "000111", exp: "否定，非常不好的卦" },
-        "21": { seq: 43, name: "夬", wuxing: "土", color: "藍色", binary: "111110", exp: "事業、感情反覆" },
-        "22": { seq: 58, name: "兌", wuxing: "金", color: "黑色", binary: "111010", exp: "很開心事情會好" },
-        "23": { seq: 49, name: "革", wuxing: "木", color: "黑色", binary: "111100", exp: "代表會有好改變或正在有好的改變" },
-        "24": { seq: 17, name: "隨", wuxing: "木", color: "紅色", binary: "111000", exp: "順其自然便會很好" },
-        "25": { seq: 28, name: "大過", wuxing: "木", color: "藍色", binary: "011110", exp: "非常不好的卦，大過卦，代表是大過錯" },
-        "26": { seq: 47, name: "困", wuxing: "金", color: "藍色", binary: "011100", exp: "非常不好的卦，困擾，不好" },
-        "27": { seq: 31, name: "咸", wuxing: "金", color: "紅色", binary: "001110", exp: "很開心。財運好卦" },
-        "28": { seq: 45, name: "萃", wuxing: "金", color: "紅色", binary: "000110", exp: "有人才匯聚，做生意代表人氣匯聚" },
-        "31": { seq: 14, name: "大有", wuxing: "金", color: "紅色", binary: "101111", exp: "非常好卦，心想事成很光明正大的好" },
-        "32": { seq: 38, name: "睽", wuxing: "火", color: "藍色", binary: "101011", exp: "看錯了，看走眼了" },
-        "33": { seq: 30, name: "離", wuxing: "火", color: "黑色", binary: "101101", exp: "積極向好，但留意脾氣用事" },
-        "34": { seq: 21, name: "噬嗑", wuxing: "木", color: "黑色", binary: "101001", exp: "變化大，反覆，吵架，能言善辯" },
-        "35": { seq: 50, name: "鼎", wuxing: "火", color: "紅色", binary: "001101", exp: "創新、創意，適合科技發展" },
-        "36": { seq: 64, name: "未濟", wuxing: "火", color: "黑色", binary: "010101", exp: "很多事情需要處理好才能成功" },
-        "37": { seq: 56, name: "旅", wuxing: "火", color: "黑色", binary: "001101", exp: "心情休閒假期心態" },
-        "38": { seq: 35, name: "晉", wuxing: "火", color: "紅色", binary: "000101", exp: "好卦，事情循序漸進地往好方向發展，特別是官場代表加官晉升" },
-        "41": { seq: 34, name: "大壯", wuxing: "土", color: "紅色", binary: "110111", exp: "非常好卦，一鳴驚人，名譽好" },
-        "42": { seq: 54, name: "歸妹", wuxing: "金", color: "藍色", binary: "110011", exp: "回歸，再次或重新做一些事情，在感情上代表有三角關係" },
-        "43": { seq: 55, name: "豐", wuxing: "水", color: "紅色", binary: "110101", exp: "豐富豐收" },
-        "44": { seq: 51, name: "震", wuxing: "木", color: "黑色", binary: "110001", exp: "一般而有驚喜的卦" },
-        "45": { seq: 32, name: "恆", wuxing: "木", color: "紅色", binary: "010110", exp: "恆卦，代表恆久長遠" },
-        "46": { seq: 40, name: "解", wuxing: "木", color: "黑色", binary: "010010", exp: "解除，解決事情，病人出此卦代表沒大事" },
-        "47": { seq: 62, name: "小過", wuxing: "金", color: "黑色", binary: "001010", exp: "小過錯，有一點遲疑，要專心" },
-        "48": { seq: 16, name: "豫", wuxing: "木", color: "紅色", binary: "000100", exp: "和諧，做生意代表好卦" },
-        "51": { seq: 9,  name: "小畜", wuxing: "木", color: "紅色", binary: "111011", exp: "小收穫，做生意代表好卦" },
-        "52": { seq: 61, name: "中孚", wuxing: "木", color: "黑色", binary: "111001", exp: "有誠意及專注就能成功" },
-        "53": { seq: 37, name: "家人", wuxing: "木", color: "紅色", binary: "101011", exp: "非常好卦，代表一團和氣" },
-        "54": { seq: 42, name: "益", wuxing: "木", color: "紅色", binary: "110011", exp: "做生意代表人氣匯聚" },
-        "55": { seq: 57, name: "巽", wuxing: "木", color: "黑色", binary: "011011", exp: "不實在，最終無成果" },
-        "56": { seq: 59, name: "渙", wuxing: "木", color: "藍色", binary: "010011", exp: "虛無不集中不專注" },
-        "57": { seq: 53, name: "漸", wuxing: "木", color: "紅色", binary: "001011", exp: "漸漸一步步見證成功" },
-        "58": { seq: 20, name: "觀", wuxing: "金", color: "藍色", binary: "000011", exp: "觀望，不實在，做傍觀者，有很多好事但實行不了" },
-        "61": { seq: 5,  name: "需", wuxing: "土", color: "紅色", binary: "111101", exp: "好卦，但要等一下。養生好卦" },
-        "62": { seq: 60, name: "節", wuxing: "水", color: "紅色", binary: "111001", exp: "節節上升，做生意的非常好卦" },
-        "63": { seq: 63, name: "既濟", wuxing: "水", color: "紅色", binary: "101101", exp: "完美成功，但要注意處理好，不要喜極忘形及放鬆" },
-        "64": { seq: 2,  name: "屯", wuxing: "水", color: "紅色", binary: "100101", exp: "儲藏寶物，非常好卦" },
-        "65": { seq: 48, name: "井", wuxing: "木", color: "藍色", binary: "011010", exp: "非常不好的卦，只有付出無收穫" },
-        "66": { seq: 29, name: "坎", wuxing: "水", color: "黑色", binary: "010101", exp: "水變化多，做貿易買賣生意是非常好卦" },
-        "67": { seq: 39, name: "蹇", wuxing: "金", color: "藍色", binary: "001010", exp: "非常不好的卦，是一拐一拐發展，阻礙多" },
-        "68": { seq: 8,  name: "比", wuxing: "土", color: "紅色", binary: "000101", exp: "要比較，在夥伴來講是好卦兄弟一樣" },
-        "71": { seq: 26, name: "大畜", wuxing: "土", color: "紅色", binary: "111100", exp: "豐收，農業上是非常好卦" },
-        "72": { seq: 41, name: "損", wuxing: "土", color: "藍色", binary: "110100", exp: "先短期付出才會有成果" },
-        "73": { seq: 22, name: "賁", wuxing: "土", color: "藍色", binary: "101100", exp: "會有突然性，有好有壞。好時有貴人出現，但主要是吵架" },
-        "74": { seq: 27, name: "頤", wuxing: "木", color: "紅色", binary: "100100", exp: "心態平和，問學業藝術類是好卦" },
-        "75": { seq: 18, name: "蠱", wuxing: "木", color: "藍色", binary: "011000", exp: "非常不好的卦，有人騙你或事情是個騙局，出租車代表黑車" },
-        "76": { seq: 4,  name: "蒙", wuxing: "火", color: "紅色", binary: "010000", exp: "萌芽時期，循序漸進便會好，學習發展的非常好卦" },
-        "77": { seq: 52, name: "艮", wuxing: "土", color: "藍色", binary: "001000", exp: "困難重重。或已經用了很久的代表好卦" },
-        "78": { seq: 23, name: "剝", wuxing: "金", color: "黑色", binary: "000000", exp: "過山車式，時好時壞卦" },
-        "81": { seq: 11, name: "泰", wuxing: "土", color: "紅色", binary: "111111", exp: "非常好卦，穩穩當當的發展，財運及車牌好卦" },
-        "82": { seq: 19, name: "臨", wuxing: "土", color: "黑色", binary: "110111", exp: "凡事需親力親為" },
-        "83": { seq: 36, name: "明夷", wuxing: "水", color: "藍色", binary: "101111", exp: "先風光後持續走下坡路，容易生腹腸病" },
-        "84": { seq: 24, name: "復", wuxing: "土", color: "紅色", binary: "100111", exp: "先經歷低谷，之後有好發展" },
-        "85": { seq: 46, name: "升", wuxing: "木", color: "紅色", binary: "011111", exp: "一步步往上升" },
-        "86": { seq: 7,  name: "師", wuxing: "水", color: "藍色", binary: "010111", exp: "爭門 - 生意、思想及駕馭" },
-        "87": { seq: 15, name: "謙", wuxing: "金", color: "紅色", binary: "001111", exp: "非常好卦，財運最好" },
-        "88": { seq: 3,  name: "坤", wuxing: "土", color: "藍色", binary: "000111", exp: "效率慢，什麼事都成不了" }
+        "11": { seq: 1,  name: "乾", wuxing: "金", color: "黑色", exp: "什麼都好，但小心得意忘形及疲累" },
+        "12": { seq: 10, name: "履", wuxing: "土", color: "紅色", exp: "認真順其自然去做" },
+        "13": { seq: 13, name: "同人", wuxing: "火", color: "紅色", exp: "代表很多人才走在一起，做生意代表人氣匯聚" },
+        "14": { seq: 25, name: "無妄", wuxing: "木", color: "藍色", exp: "沒方向，甚至有無妄之災" },
+        "15": { seq: 44, name: "姤", wuxing: "金", color: "藍色", exp: "很反復，男女糾纏事特別多，女生間婚姻感情是好卦，女生專用好卦" },
+        "16": { seq: 6,  name: "訟", wuxing: "火", color: "藍色", exp: "非常不好的卦，打官司，是非小人，要訂定仔細合同做事" },
+        "17": { seq: 33, name: "遁", wuxing: "金", color: "藍色", exp: "低調藏起來，內向宅男/宅女，生意發展停滯不前" },
+        "18": { seq: 12, name: "否", wuxing: "金", color: "藍色", exp: "否定，非常不好的卦" },
+        "21": { seq: 43, name: "夬", wuxing: "土", color: "藍色", exp: "事業、感情反覆" },
+        "22": { seq: 58, name: "兌", wuxing: "金", color: "黑色", exp: "很開心事情會好" },
+        "23": { seq: 49, name: "革", wuxing: "木", color: "黑色", exp: "代表會有好改變或正在有好的改變" },
+        "24": { seq: 17, name: "隨", wuxing: "木", color: "紅色", exp: "順其自然便會很好" },
+        "25": { seq: 28, name: "大過", wuxing: "木", color: "藍色", exp: "非常不好的卦，大過卦，代表是大過錯" },
+        "26": { seq: 47, name: "困", wuxing: "金", color: "藍色", exp: "非常不好的卦，困擾，不好" },
+        "27": { seq: 31, name: "咸", wuxing: "金", color: "紅色", exp: "很開心。財運好卦" },
+        "28": { seq: 45, name: "萃", wuxing: "金", color: "紅色", exp: "有人才匯聚，做生意代表人氣匯聚" },
+        "31": { seq: 14, name: "大有", wuxing: "金", color: "紅色", exp: "非常好卦，心想事成很光明正大的好" },
+        "32": { seq: 38, name: "睽", wuxing: "火", color: "藍色", exp: "看錯了，看走眼了" },
+        "33": { seq: 30, name: "離", wuxing: "火", color: "黑色", exp: "積極向好，但留意脾氣用事" },
+        "34": { seq: 21, name: "噬嗑", wuxing: "木", color: "黑色", exp: "變化大，反覆，吵架，能言善辯" },
+        "35": { seq: 50, name: "鼎", wuxing: "火", color: "紅色", exp: "創新、創意，適合科技發展" },
+        "36": { seq: 64, name: "未濟", wuxing: "火", color: "黑色", exp: "很多事情需要處理好才能成功" },
+        "37": { seq: 56, name: "旅", wuxing: "火", color: "黑色", exp: "心情休閒假期心態" },
+        "38": { seq: 35, name: "晉", wuxing: "火", color: "紅色", exp: "好卦，事情循序漸進地往好方向發展，特別是官場代表加官晉升" },
+        "41": { seq: 34, name: "大壯", wuxing: "土", color: "紅色", exp: "非常好卦，一鳴驚人，名譽好" },
+        "42": { seq: 54, name: "歸妹", wuxing: "金", color: "藍色", exp: "回歸，再次或重新做一些事情，在感情上代表有三角關係" },
+        "43": { seq: 55, name: "豐", wuxing: "水", color: "紅色", exp: "豐富豐收" },
+        "44": { seq: 51, name: "震", wuxing: "木", color: "黑色", exp: "一般而有驚喜的卦" },
+        "45": { seq: 32, name: "恆", wuxing: "木", color: "紅色", exp: "恆卦，代表恆久長遠" },
+        "46": { seq: 40, name: "解", wuxing: "木", color: "黑色", exp: "解除，解決事情，病人出此卦代表沒大事" },
+        "47": { seq: 62, name: "小過", wuxing: "金", color: "黑色", exp: "小過錯，有一點遲疑，要專心" },
+        "48": { seq: 16, name: "豫", wuxing: "木", color: "紅色", exp: "和諧，做生意代表好卦" },
+        "51": { seq: 9,  name: "小畜", wuxing: "木", color: "紅色", exp: "小收穫，做生意代表好卦" },
+        "52": { seq: 61, name: "中孚", wuxing: "木", color: "黑色", exp: "有誠意及專注就能成功" },
+        "53": { seq: 37, name: "家人", wuxing: "木", color: "紅色", exp: "非常好卦，代表一團和氣" },
+        "54": { seq: 42, name: "益", wuxing: "木", color: "紅色", exp: "做生意代表人氣匯聚" },
+        "55": { seq: 57, name: "巽", wuxing: "木", color: "黑色", exp: "不實在，最終無成果" },
+        "56": { seq: 59, name: "渙", wuxing: "木", color: "藍色", exp: "虛無不集中不專注" },
+        "57": { seq: 53, name: "漸", wuxing: "木", color: "紅色", exp: "漸漸一步步見證成功" },
+        "58": { seq: 20, name: "觀", wuxing: "金", color: "藍色", exp: "觀望，不實在，做傍觀者，有很多好事但實行不了" },
+        "61": { seq: 5,  name: "需", wuxing: "土", color: "紅色", exp: "好卦，但要等一下。養生好卦" },
+        "62": { seq: 60, name: "節", wuxing: "水", color: "紅色", exp: "節節上升，做生意的非常好卦" },
+        "63": { seq: 63, name: "既濟", wuxing: "水", color: "紅色", exp: "完美成功，但要注意處理好，不要喜極忘形及放鬆" },
+        "64": { seq: 2,  name: "屯", wuxing: "水", color: "紅色", exp: "儲藏寶物，非常好卦" },
+        "65": { seq: 48, name: "井", wuxing: "木", color: "藍色", exp: "非常不好的卦，只有付出無收穫" },
+        "66": { seq: 29, name: "坎", wuxing: "水", color: "黑色", exp: "水變化多，做貿易買賣生意是非常好卦" },
+        "67": { seq: 39, name: "蹇", wuxing: "金", color: "藍色", exp: "非常不好的卦，是一拐一拐發展，阻礙多" },
+        "68": { seq: 8,  name: "比", wuxing: "土", color: "紅色", exp: "要比較，在夥伴來講是好卦兄弟一樣" },
+        "71": { seq: 26, name: "大畜", wuxing: "土", color: "紅色", exp: "豐收，農業上是非常好卦" },
+        "72": { seq: 41, name: "損", wuxing: "土", color: "藍色", exp: "先短期付出才會有成果" },
+        "73": { seq: 22, name: "賁", wuxing: "土", color: "藍色", exp: "會有突然性，有好有壞。好時有貴人出現，但主要是吵架" },
+        "74": { seq: 27, name: "頤", wuxing: "木", color: "紅色", exp: "心態平和，問學業藝術類是好卦" },
+        "75": { seq: 18, name: "蠱", wuxing: "木", color: "藍色", exp: "非常不好的卦，有人騙你或事情是個騙局，出租車代表黑車" },
+        "76": { seq: 4,  name: "蒙", wuxing: "火", color: "紅色", exp: "萌芽時期，循序漸進便會好，學習發展的非常好卦" },
+        "77": { seq: 52, name: "艮", wuxing: "土", color: "藍色", exp: "困難重重。或已經用了很久的代表好卦" },
+        "78": { seq: 23, name: "剝", wuxing: "金", color: "黑色", exp: "過山車式，時好時壞卦" },
+        "81": { seq: 11, name: "泰", wuxing: "土", color: "紅色", exp: "非常好卦，穩穩當當的發展，財運及車牌好卦" },
+        "82": { seq: 19, name: "臨", wuxing: "土", color: "黑色", exp: "凡事需親力親為" },
+        "83": { seq: 36, name: "明夷", wuxing: "水", color: "藍色", exp: "先風光後持續走下坡路，容易生腹腸病" },
+        "84": { seq: 24, name: "復", wuxing: "土", color: "紅色", exp: "先經歷低谷，之後有好發展" },
+        "85": { seq: 46, name: "升", wuxing: "木", color: "紅色", exp: "一步步往上升" },
+        "86": { seq: 7,  name: "師", wuxing: "水", color: "藍色", exp: "爭門 - 生意、思想及駕馭" },
+        "87": { seq: 15, name: "謙", wuxing: "金", color: "紅色", exp: "非常好卦，財運最好" },
+        "88": { seq: 3,  name: "坤", wuxing: "土", color: "藍色", exp: "效率慢，什麼事都成不了" }
     };
 
-    // 八卦二進制爻象基礎定義 (用於繪製六爻圖：1代表陽爻，0代表陰爻)
-    const trigramLines = {
-        1: "111", // 乾 (天)
-        2: "011", // 兌 (澤)
-        3: "101", // 離 (火)
-        4: "001", // 震 (雷)
-        5: "110", // 巽 (風)
-        6: "010", // 坎 (水)
-        7: "100", // 艮 (山)
-        8: "000"  // 坤 (地)
-    };
+    // 易經畫圖二進制字典
+    const trigramLines = { 1: "111", 2: "011", 3: "101", 4: "001", 5: "110", 6: "010", 7: "100", 8: "000" };
 
     document.getElementById('analyse-btn').addEventListener('click', parseAllCombinations);
-
-    // 頁面初始化自動載入範例數據
     parseAllCombinations();
 
     function parseAllCombinations() {
         const inputStr = document.getElementById('multi-digit-input').value.trim().replace(/\D/g, '');
         const outputList = document.getElementById('output-list');
-        outputList.innerHTML = ''; // 清空舊顯示內容
+        outputList.innerHTML = ''; 
 
-        if (inputStr.length < 2) {
-            alert('請輸入長度大於或等於 2 位的數字串！');
-            return;
-        }
+        if (inputStr.length < 2) return;
 
-        // 上限控制在長度 20
         const maxLen = Math.min(inputStr.length, 20);
 
-        // 依長度從 2 碼逐層解析到最大長度
         for (let len = 2; len <= maxLen; len++) {
-            // 從字串尾部擷取當前所需長度的數字串
             const subStr = inputStr.substring(inputStr.length - len);
 
-            // 【核心對切演算】：奇數長度時上少下多 (例如：7碼對切為 3碼 和 4碼)
+            // 精準對切點修正：
+            // 長度 2 ➔ splitPos = 1 ➔ upper="6", lower="7"
+            // 長度 3 ➔ splitPos = 1 ➔ upper="5", lower="67"
             const splitPos = Math.floor(subStr.length / 2);
             const upperDigits = subStr.substring(0, splitPos);
             const lowerDigits = subStr.substring(splitPos);
 
-            // 求餘數公式：大數除以 8，若整除 (餘 0) 則歸入第 8 卦
+            // 修正數學求餘數引擎（處理多位數）
             const upperMod = (parseInt(upperDigits) % 8) || 8;
             const lowerMod = (parseInt(lowerDigits) % 8) || 8;
 
-            // 組合成雙位元查表 Key (十位為上卦，個位為下卦)
             const lookupKey = `${upperMod}${lowerMod}`;
             const matchedGua = luckyGuaDatabase[lookupKey];
 
-            // 建立前端展示行元件
             const rowDiv = document.createElement('div');
             rowDiv.className = 'combination-row';
 
-            // 1. 頂部資訊列
             const headerDiv = document.createElement('div');
             headerDiv.className = 'row-header';
             headerDiv.innerHTML = `
                 <div class="sub-num">${subStr}</div>
                 <div class="split-detail">
-                    上卦: <strong>${upperDigits}</strong> ➔ 餘數 ${upperMod} | 
-                    下卦: <strong>${lowerDigits}</strong> ➔ 餘數 ${lowerMod}
+                    上卦: <strong>${upperDigits}</strong> (餘數 ${upperMod}) | 
+                    下卦: <strong>${lowerDigits}</strong> (餘數 ${lowerMod})
                 </div>
             `;
             rowDiv.appendChild(headerDiv);
 
-            // 2. 下方卦象與評語排版區
             const guaBox = document.createElement('div');
             guaBox.className = 'gua-display-box';
 
             if (matchedGua) {
-                // 自動生成 6 個爻的陰陽圖形代碼 (由下卦三爻 + 上卦三爻組合而成)
                 const fullHexBinary = trigramLines[lowerMod] + trigramLines[upperMod]; 
-                
-                // 產生易經六爻圖的 HTML
                 let diagramHtml = '<div class="iching-diagram">';
                 for (let bit of fullHexBinary) {
-                    const barClass = (bit === '1') ? 'line-bar yang-bar' : 'line-bar yin-bar';
-                    diagramHtml += `<div class="${barClass}"></div>`;
+                    diagramHtml += `<div class="${bit === '1' ? 'line-bar yang-bar' : 'line-bar yin-bar'}"></div>`;
                 }
                 diagramHtml += '</div>';
 
@@ -429,13 +378,7 @@
             } else {
                 guaBox.innerHTML = `
                     <div class="color-indicator" style="background:#cbd5e0;"></div>
-                    <div class="iching-diagram" style="opacity:0.3;">
-                        <div class="line-bar yin-bar"></div><div class="line-bar yin-bar"></div>
-                    </div>
-                    <div class="gua-info-body">
-                        <div class="gua-meta-title" style="color:#718096;">未定義代碼 (${lookupKey})</div>
-                        <div class="gua-commentary">資料庫中無此對應數據。</div>
-                    </div>
+                    <div class="gua-info-body"><div class="gua-meta-title" style="color:#718096;">未定義代碼 (${lookupKey})</div></div>
                 `;
             }
 
@@ -444,6 +387,5 @@
         }
     }
 </script>
-
 </body>
 </html>
