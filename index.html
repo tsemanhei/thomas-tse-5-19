@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多維幸運數字六十四卦計算器 (精準位數相加版)</title>
+    <title>多維幸運數字六十四卦計算器 (完美首尾去零版)</title>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -122,6 +122,14 @@
             letter-spacing: 1px;
         }
 
+        .origin-hint {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            font-weight: normal;
+            margin-left: 10px;
+            text-decoration: line-through;
+        }
+
         .split-detail {
             font-size: 0.9rem;
             color: #4a5568;
@@ -225,11 +233,11 @@
 
 <div class="container">
     <h1>多維幸運數字六十四卦計算器</h1>
-    <div class="subtitle">自動依長度 2~20 位遞增切割：奇數長度上卦少 1 碼、下卦多 1 碼；每個區塊獨立執行「位數相加，大於8則持續減8」算法</div>
+    <div class="subtitle">自動依長度 2~20 位遞增切割：若組合開頭或結尾有「0」將自動移除，再依奇數長度上少下多對切，執行減8求卦。</div>
     
     <div class="input-section">
         <div class="input-group">
-            <input type="text" id="multi-digit-input" placeholder="請輸入 2 至 20 位的純數字" value="1234567" autocomplete="off">
+            <input type="text" id="multi-digit-input" placeholder="請輸入數字串" value="1234567" autocomplete="off">
             <button id="analyse-btn">分析所有組合</button>
         </div>
     </div>
@@ -306,30 +314,22 @@
         "88": { seq: 3,  name: "坤", wuxing: "土", color: "藍色", exp: "效率慢，什麼事都成不了" }
     };
 
-    // 八卦二進制爻象基礎定義 (用於繪製六爻圖：1代表陽爻，0代表陰爻)
     const trigramLines = { 1: "111", 2: "011", 3: "101", 4: "001", 5: "110", 6: "010", 7: "100", 8: "000" };
 
     document.getElementById('analyse-btn').addEventListener('click', parseAllCombinations);
-    parseAllCombinations(); // 初始化加載
+    parseAllCombinations(); 
 
-    // ==========================================
-    // 【核心演算法修正】：各個位數相加，大於 8 則持續減 8
-    // ==========================================
+    // 各個位數相加，大於 8 則持續減 8 的演算法
     function calculateGuaFromDigits(digitStr) {
         if (!digitStr) return 8; 
-        
-        // 1. 先將所有個體數字相加
         let sum = 0;
         for (let i = 0; i < digitStr.length; i++) {
             sum += parseInt(digitStr.charAt(i));
         }
-        
-        // 2. 如果總和大於 8，就一直減去 8 直到符合小於或等於 8
         while (sum > 8) {
             sum -= 8;
         }
-        
-        return sum || 8; // 防止為 0 的極端情況
+        return sum || 8; 
     }
 
     function parseAllCombinations() {
@@ -342,14 +342,22 @@
         const maxLen = Math.min(inputStr.length, 20);
 
         for (let len = 2; len <= maxLen; len++) {
-            const subStr = inputStr.substring(inputStr.length - len);
+            // 擷取原始子組合（例如結尾為 0120）
+            const originalSubStr = inputStr.substring(inputStr.length - len);
+
+            // 【最新規則】：利用正則表達式，自動移除「開頭」與「結尾」的所有零
+            // ^0+ 代表開頭連續的0，0+$ 代表結尾連續的0
+            let subStr = originalSubStr.replace(/^0+/, '').replace(/0+$/, '');
+
+            // 如果移除完首尾零之後沒有數字，或者長度不夠，則跳過此組合的顯示
+            if (subStr.length < 1) continue;
 
             // 奇數長度上少下多切分
             const splitPos = Math.floor(subStr.length / 2);
             const upperDigits = subStr.substring(0, splitPos);
             const lowerDigits = subStr.substring(splitPos);
 
-            // 執行最新修正的位數求和運算
+            // 計算上下卦象
             const upperMod = calculateGuaFromDigits(upperDigits);
             const lowerMod = calculateGuaFromDigits(lowerDigits);
 
@@ -359,13 +367,18 @@
             const rowDiv = document.createElement('div');
             rowDiv.className = 'combination-row';
 
+            // 標題顯示，如果首尾有被去零，會把原字串用刪除線提示在後方
+            const hasZeroTrimmed = (originalSubStr !== subStr);
             const headerDiv = document.createElement('div');
             headerDiv.className = 'row-header';
             headerDiv.innerHTML = `
-                <div class="sub-num">${subStr}</div>
+                <div class="sub-num">
+                    ${subStr} 
+                    ${hasZeroTrimmed ? `<span class="origin-hint">(原組合: ${originalSubStr})</span>` : ''}
+                </div>
                 <div class="split-detail">
-                    上卦段: <strong>${upperDigits}</strong> (計算結果: ${upperMod}) | 
-                    下卦段: <strong>${lowerDigits}</strong> (計算結果: ${lowerMod})
+                    上卦段: <strong>${upperDigits || '無'}</strong> (結果: ${upperMod}) | 
+                    下卦段: <strong>${lowerDigits}</strong> (結果: ${lowerMod})
                 </div>
             `;
             rowDiv.appendChild(headerDiv);
@@ -374,7 +387,6 @@
             guaBox.className = 'gua-display-box';
 
             if (matchedGua) {
-                // 由下卦三爻（內卦）與上卦三爻（外卦）組成六爻
                 const fullHexBinary = trigramLines[lowerMod] + trigramLines[upperMod]; 
                 let diagramHtml = '<div class="iching-diagram">';
                 for (let bit of fullHexBinary) {
