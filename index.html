@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多維幸運數字六十四卦計算器 (精準修正版)</title>
+    <title>多維幸運數字六十四卦計算器 (精準位數相加版)</title>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -225,7 +225,7 @@
 
 <div class="container">
     <h1>多維幸運數字六十四卦計算器</h1>
-    <div class="subtitle">自動依長度 2~20 位遞增切割：奇數長度上卦少 1 碼、下卦多 1 碼；偶數長度完全對切</div>
+    <div class="subtitle">自動依長度 2~20 位遞增切割：奇數長度上卦少 1 碼、下卦多 1 碼；每個區塊獨立執行「位數相加，大於8則持續減8」算法</div>
     
     <div class="input-section">
         <div class="input-group">
@@ -238,7 +238,7 @@
 </div>
 
 <script>
-    // 六十四卦完整對照靜態資料庫
+    // 完整的六十四卦對照資料庫
     const luckyGuaDatabase = {
         "11": { seq: 1,  name: "乾", wuxing: "金", color: "黑色", exp: "什麼都好，但小心得意忘形及疲累" },
         "12": { seq: 10, name: "履", wuxing: "土", color: "紅色", exp: "認真順其自然去做" },
@@ -264,128 +264,4 @@
         "36": { seq: 64, name: "未濟", wuxing: "火", color: "黑色", exp: "很多事情需要處理好才能成功" },
         "37": { seq: 56, name: "旅", wuxing: "火", color: "黑色", exp: "心情休閒假期心態" },
         "38": { seq: 35, name: "晉", wuxing: "火", color: "紅色", exp: "好卦，事情循序漸進地往好方向發展，特別是官場代表加官晉升" },
-        "41": { seq: 34, name: "大壯", wuxing: "土", color: "紅色", exp: "非常好卦，一鳴驚人，名譽好" },
-        "42": { seq: 54, name: "歸妹", wuxing: "金", color: "藍色", exp: "回歸，再次或重新做一些事情，在感情上代表有三角關係" },
-        "43": { seq: 55, name: "豐", wuxing: "水", color: "紅色", exp: "豐富豐收" },
-        "44": { seq: 51, name: "震", wuxing: "木", color: "黑色", exp: "一般而有驚喜的卦" },
-        "45": { seq: 32, name: "恆", wuxing: "木", color: "紅色", exp: "恆卦，代表恆久長遠" },
-        "46": { seq: 40, name: "解", wuxing: "木", color: "黑色", exp: "解除，解決事情，病人出此卦代表沒大事" },
-        "47": { seq: 62, name: "小過", wuxing: "金", color: "黑色", exp: "小過錯，有一點遲疑，要專心" },
-        "48": { seq: 16, name: "豫", wuxing: "木", color: "紅色", exp: "和諧，做生意代表好卦" },
-        "51": { seq: 9,  name: "小畜", wuxing: "木", color: "紅色", exp: "小收穫，做生意代表好卦" },
-        "52": { seq: 61, name: "中孚", wuxing: "木", color: "黑色", exp: "有誠意及專注就能成功" },
-        "53": { seq: 37, name: "家人", wuxing: "木", color: "紅色", exp: "非常好卦，代表一團和氣" },
-        "54": { seq: 42, name: "益", wuxing: "木", color: "紅色", exp: "做生意代表人氣匯聚" },
-        "55": { seq: 57, name: "巽", wuxing: "木", color: "黑色", exp: "不實在，最終無成果" },
-        "56": { seq: 59, name: "渙", wuxing: "木", color: "藍色", exp: "虛無不集中不專注" },
-        "57": { seq: 53, name: "漸", wuxing: "木", color: "紅色", exp: "漸漸一步步見證成功" },
-        "58": { seq: 20, name: "觀", wuxing: "金", color: "藍色", exp: "觀望，不實在，做傍觀者，有很多好事但實行不了" },
-        "61": { seq: 5,  name: "需", wuxing: "土", color: "紅色", exp: "好卦，但要等一下。養生好卦" },
-        "62": { seq: 60, name: "節", wuxing: "水", color: "紅色", exp: "節節上升，做生意的非常好卦" },
-        "63": { seq: 63, name: "既濟", wuxing: "水", color: "紅色", exp: "完美成功，但要注意處理好，不要喜極忘形及放鬆" },
-        "64": { seq: 2,  name: "屯", wuxing: "水", color: "紅色", exp: "儲藏寶物，非常好卦" },
-        "65": { seq: 48, name: "井", wuxing: "木", color: "藍色", exp: "非常不好的卦，只有付出無收穫" },
-        "66": { seq: 29, name: "坎", wuxing: "水", color: "黑色", exp: "水變化多，做貿易買賣生意是非常好卦" },
-        "67": { seq: 39, name: "蹇", wuxing: "金", color: "藍色", exp: "非常不好的卦，是一拐一拐發展，阻礙多" },
-        "68": { seq: 8,  name: "比", wuxing: "土", color: "紅色", exp: "要比較，在夥伴來講是好卦兄弟一樣" },
-        "71": { seq: 26, name: "大畜", wuxing: "土", color: "紅色", exp: "豐收，農業上是非常好卦" },
-        "72": { seq: 41, name: "損", wuxing: "土", color: "藍色", exp: "先短期付出才會有成果" },
-        "73": { seq: 22, name: "賁", wuxing: "土", color: "藍色", exp: "會有突然性，有好有壞。好時有貴人出現，但主要是吵架" },
-        "74": { seq: 27, name: "頤", wuxing: "木", color: "紅色", exp: "心態平和，問學業藝術類是好卦" },
-        "75": { seq: 18, name: "蠱", wuxing: "木", color: "藍色", exp: "非常不好的卦，有人騙你或事情是個騙局，出租車代表黑車" },
-        "76": { seq: 4,  name: "蒙", wuxing: "火", color: "紅色", exp: "萌芽時期，循序漸進便會好，學習發展的非常好卦" },
-        "77": { seq: 52, name: "艮", wuxing: "土", color: "藍色", exp: "困難重重。或已經用了很久的代表好卦" },
-        "78": { seq: 23, name: "剝", wuxing: "金", color: "黑色", exp: "過山車式，時好時壞卦" },
-        "81": { seq: 11, name: "泰", wuxing: "土", color: "紅色", exp: "非常好卦，穩穩當當的發展，財運及車牌好卦" },
-        "82": { seq: 19, name: "臨", wuxing: "土", color: "黑色", exp: "凡事需親力親為" },
-        "83": { seq: 36, name: "明夷", wuxing: "水", color: "藍色", exp: "先風光後持續走下坡路，容易生腹腸病" },
-        "84": { seq: 24, name: "復", wuxing: "土", color: "紅色", exp: "先經歷低谷，之後有好發展" },
-        "85": { seq: 46, name: "升", wuxing: "木", color: "紅色", exp: "一步步往上升" },
-        "86": { seq: 7,  name: "師", wuxing: "水", color: "藍色", exp: "爭門 - 生意、思想及駕馭" },
-        "87": { seq: 15, name: "謙", wuxing: "金", color: "紅色", exp: "非常好卦，財運最好" },
-        "88": { seq: 3,  name: "坤", wuxing: "土", color: "藍色", exp: "效率慢，什麼事都成不了" }
-    };
-
-    // 易經畫圖二進制字典
-    const trigramLines = { 1: "111", 2: "011", 3: "101", 4: "001", 5: "110", 6: "010", 7: "100", 8: "000" };
-
-    document.getElementById('analyse-btn').addEventListener('click', parseAllCombinations);
-    parseAllCombinations();
-
-    function parseAllCombinations() {
-        const inputStr = document.getElementById('multi-digit-input').value.trim().replace(/\D/g, '');
-        const outputList = document.getElementById('output-list');
-        outputList.innerHTML = ''; 
-
-        if (inputStr.length < 2) return;
-
-        const maxLen = Math.min(inputStr.length, 20);
-
-        for (let len = 2; len <= maxLen; len++) {
-            const subStr = inputStr.substring(inputStr.length - len);
-
-            // 精準對切點修正：
-            // 長度 2 ➔ splitPos = 1 ➔ upper="6", lower="7"
-            // 長度 3 ➔ splitPos = 1 ➔ upper="5", lower="67"
-            const splitPos = Math.floor(subStr.length / 2);
-            const upperDigits = subStr.substring(0, splitPos);
-            const lowerDigits = subStr.substring(splitPos);
-
-            // 修正數學求餘數引擎（處理多位數）
-            const upperMod = (parseInt(upperDigits) % 8) || 8;
-            const lowerMod = (parseInt(lowerDigits) % 8) || 8;
-
-            const lookupKey = `${upperMod}${lowerMod}`;
-            const matchedGua = luckyGuaDatabase[lookupKey];
-
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'combination-row';
-
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'row-header';
-            headerDiv.innerHTML = `
-                <div class="sub-num">${subStr}</div>
-                <div class="split-detail">
-                    上卦: <strong>${upperDigits}</strong> (餘數 ${upperMod}) | 
-                    下卦: <strong>${lowerDigits}</strong> (餘數 ${lowerMod})
-                </div>
-            `;
-            rowDiv.appendChild(headerDiv);
-
-            const guaBox = document.createElement('div');
-            guaBox.className = 'gua-display-box';
-
-            if (matchedGua) {
-                const fullHexBinary = trigramLines[lowerMod] + trigramLines[upperMod]; 
-                let diagramHtml = '<div class="iching-diagram">';
-                for (let bit of fullHexBinary) {
-                    diagramHtml += `<div class="${bit === '1' ? 'line-bar yang-bar' : 'line-bar yin-bar'}"></div>`;
-                }
-                diagramHtml += '</div>';
-
-                guaBox.innerHTML = `
-                    <div class="color-indicator indicator-${matchedGua.color}"></div>
-                    ${diagramHtml}
-                    <div class="gua-info-body">
-                        <div class="gua-meta-title">
-                            ${matchedGua.name}卦
-                            <span class="badge badge-${matchedGua.color}">${matchedGua.color}</span>
-                            <span class="wuxing-tag">【第 ${matchedGua.seq} 卦 · 五行: ${matchedGua.wuxing} · 代碼: ${lookupKey}】</span>
-                        </div>
-                        <div class="gua-commentary">${matchedGua.exp}</div>
-                    </div>
-                `;
-            } else {
-                guaBox.innerHTML = `
-                    <div class="color-indicator" style="background:#cbd5e0;"></div>
-                    <div class="gua-info-body"><div class="gua-meta-title" style="color:#718096;">未定義代碼 (${lookupKey})</div></div>
-                `;
-            }
-
-            rowDiv.appendChild(guaBox);
-            outputList.appendChild(rowDiv);
-        }
-    }
-</script>
-</body>
-</html>
+        "41": { seq: 34, name: "大壯
