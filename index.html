@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多維幸運數字六十四卦計算器 (完美首尾去零版)</title>
+    <title>多維幸運數字六十四卦計算器 (無重複終極版)</title>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -233,7 +233,7 @@
 
 <div class="container">
     <h1>多維幸運數字六十四卦計算器</h1>
-    <div class="subtitle">自動依長度 2~20 位遞增切割：若組合開頭或結尾有「0」將自動移除，再依奇數長度上少下多對切，執行減8求卦。</div>
+    <div class="subtitle">自動依長度 2~20 位遞增切割：移除首尾零後若組合重複，自動進行過濾僅顯示唯一結果</div>
     
     <div class="input-section">
         <div class="input-group">
@@ -341,23 +341,31 @@
 
         const maxLen = Math.min(inputStr.length, 20);
 
+        // 用來追蹤和排除重複的 Set
+        const displayedCombinations = new Set();
+
         for (let len = 2; len <= maxLen; len++) {
-            // 擷取原始子組合（例如結尾為 0120）
             const originalSubStr = inputStr.substring(inputStr.length - len);
 
-            // 【最新規則】：利用正則表達式，自動移除「開頭」與「結尾」的所有零
-            // ^0+ 代表開頭連續的0，0+$ 代表結尾連續的0
+            // 核心清洗：移除開頭與結尾的所有零
             let subStr = originalSubStr.replace(/^0+/, '').replace(/0+$/, '');
 
-            // 如果移除完首尾零之後沒有數字，或者長度不夠，則跳過此組合的顯示
+            // 排除清洗過後長度不足或為空的組合
             if (subStr.length < 1) continue;
+
+            // 【新優化邏輯】：如果這個清洗過後的有效數字串已經在 Set 中，代表重複，直接跳過不顯示
+            if (displayedCombinations.has(subStr)) {
+                continue;
+            }
+            // 首次遇見，將其加入紀錄
+            displayedCombinations.add(subStr);
 
             // 奇數長度上少下多切分
             const splitPos = Math.floor(subStr.length / 2);
             const upperDigits = subStr.substring(0, splitPos);
             const lowerDigits = subStr.substring(splitPos);
 
-            // 計算上下卦象
+            // 計算上下卦段結果
             const upperMod = calculateGuaFromDigits(upperDigits);
             const lowerMod = calculateGuaFromDigits(lowerDigits);
 
@@ -367,7 +375,6 @@
             const rowDiv = document.createElement('div');
             rowDiv.className = 'combination-row';
 
-            // 標題顯示，如果首尾有被去零，會把原字串用刪除線提示在後方
             const hasZeroTrimmed = (originalSubStr !== subStr);
             const headerDiv = document.createElement('div');
             headerDiv.className = 'row-header';
