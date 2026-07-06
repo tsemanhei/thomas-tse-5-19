@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>幸運數字卦計算器</title>
+    <title>幸運數字六十四卦計算器</title>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -232,8 +232,8 @@
 <body>
 
 <div class="container">
-    <h1>幸運數字卦計算器</h1>
-    <div class="subtitle">自動依長度 2~20 位遞增切割：移除首尾零後若組合重複，自動進行過濾僅顯示唯一結果</div>
+    <h1>幸運數字六十四卦計算器</h1>
+    <div class="subtitle">自動依長度 2~20 位遞增切割：首尾去零後若「小於 2 位數」或「重複」將自動剔除不予顯示與計算。</div>
     
     <div class="input-section">
         <div class="input-group">
@@ -341,7 +341,7 @@
 
         const maxLen = Math.min(inputStr.length, 20);
 
-        // 用來追蹤和排除重複的 Set
+        // 用來追蹤排除重複的 Set
         const displayedCombinations = new Set();
 
         for (let len = 2; len <= maxLen; len++) {
@@ -350,14 +350,15 @@
             // 核心清洗：移除開頭與結尾的所有零
             let subStr = originalSubStr.replace(/^0+/, '').replace(/0+$/, '');
 
-            // 排除清洗過後長度不足或為空的組合
-            if (subStr.length < 1) continue;
+            // 【最新優化邊界規則】：去零之後如果「小於 2 位數」就直接跳過，不計算也不顯示
+            if (subStr.length < 2) {
+                continue;
+            }
 
-            // 【新優化邏輯】：如果這個清洗過後的有效數字串已經在 Set 中，代表重複，直接跳過不顯示
+            // 如果清洗過後的有效數字串已經在 Set 中（重複），直接跳過
             if (displayedCombinations.has(subStr)) {
                 continue;
             }
-            // 首次遇見，將其加入紀錄
             displayedCombinations.add(subStr);
 
             // 奇數長度上少下多切分
@@ -384,7 +385,7 @@
                     ${hasZeroTrimmed ? `<span class="origin-hint">(原組合: ${originalSubStr})</span>` : ''}
                 </div>
                 <div class="split-detail">
-                    上卦段: <strong>${upperDigits || '無'}</strong> (結果: ${upperMod}) | 
+                    上卦段: <strong>${upperDigits}</strong> (結果: ${upperMod}) | 
                     下卦段: <strong>${lowerDigits}</strong> (結果: ${lowerMod})
                 </div>
             `;
